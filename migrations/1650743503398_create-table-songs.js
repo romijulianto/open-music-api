@@ -1,7 +1,7 @@
-/**
- * Kriteria 8 : Menggunakan Database dalam Menyimpan Data lagu
- * @param {*} pgm
- */
+/* eslint-disable linebreak-style */
+/* eslint-disable camelcase */
+
+exports.shorthands = undefined;
 
 exports.up = (pgm) => {
     pgm.createTable('songs', {
@@ -23,19 +23,17 @@ exports.up = (pgm) => {
         },
         genre: {
             type: 'TEXT',
-            notNull: false,
+            notNull: true,
         },
         duration: {
             type: 'INTEGER',
             notNull: false,
         },
-        inserted_at: {
-            type: 'TEXT',
-            notNull: true,
-        },
-        updated_at: {
-            type: 'TEXT',
-            notNull: true,
+        album_id: {
+            type: 'VARCHAR(50)',
+            references: 'albums',
+            notNull: false,
+            onDelete: 'cascade',
         },
     });
 };
