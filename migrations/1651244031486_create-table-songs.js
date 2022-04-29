@@ -1,8 +1,3 @@
-/* eslint-disable linebreak-style */
-/* eslint-disable camelcase */
-
-exports.shorthands = undefined;
-
 exports.up = (pgm) => {
     pgm.createTable('songs', {
         id: {
@@ -14,14 +9,14 @@ exports.up = (pgm) => {
             notNull: true,
         },
         year: {
-            type: 'INTEGER',
-            notNull: true,
-        },
-        performer: {
-            type: 'TEXT',
+            type: 'SMALLINT',
             notNull: true,
         },
         genre: {
+            type: 'TEXT',
+            notNull: true,
+        },
+        performer: {
             type: 'TEXT',
             notNull: true,
         },
@@ -31,9 +26,7 @@ exports.up = (pgm) => {
         },
         album_id: {
             type: 'VARCHAR(50)',
-            references: 'albums',
             notNull: false,
-            onDelete: 'cascade',
         },
     });
 };
