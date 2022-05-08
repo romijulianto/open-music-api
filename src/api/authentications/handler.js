@@ -1,24 +1,29 @@
 const autoBind = require('auto-bind');
 const ClientError = require('../../exceptions/ClientError');
 
-class AlbumsHandler {
-    constructor(service, validator) {
-        const { albumsService, songsService } = service;
-        this._service = albumsService;
-        this._songsService = songsService;
+class AuthenticationsHandler {
+    constructor(authenticationsService, usersService, tokenManager, validator) {
+        this._authenticationsService = authenticationsService;
+        this._usersService = usersService;
+        this._tokenManager = tokenManager;
         this._validator = validator;
         autoBind(this);
     }
 
-    async postAlbumHandler({ payload }, h) {
+    async postAuthenticationHandler({ payload }, h) {
         try {
-            this._validator.validateAlbumPayload(payload);
-            const albumId = await this._service.addAlbums(payload);
+            this._validator.validatePostAuthenticationPayload(payload);
+            const { username, password } = payload;
+            const id = await this._usersService.verifyUserCredential(username, password);
+            const accessToken = this._tokenManager.generateAccessToken({ id });
+            const refreshToken = this._tokenManager.generateRefreshToken({ id });
+            await this._authenticationsService.addRefreshToken(refreshToken);
             const response = h.response({
                 status: 'success',
-                message: 'Album berhasil ditambahkan',
+                message: 'Authentication berhasil ditambahkan',
                 data: {
-                    albumId,
+                    accessToken,
+                    refreshToken,
                 },
             });
             response.code(201);
@@ -32,7 +37,7 @@ class AlbumsHandler {
                 response.code(error.statusCode);
                 return response;
             }
-
+            // Server ERROR!
             const response = h.response({
                 status: 'error',
                 message: 'Maaf, terjadi kegagalan pada server kami.',
@@ -43,16 +48,23 @@ class AlbumsHandler {
         }
     }
 
-    async getAlbumByIdHandler(request, h) {
+    /**
+     * This function is used to refresh the access token by using the refresh token.
+     * @param h - is the response object
+     * @returns The response object is being returned.
+     */
+    async putAuthenticationHandler({ payload }, h) {
         try {
-            const { id } = request.params;
-            const album = await this._service.getAlbumById(id);
-            const songs = await this._songsService.getSongsByAlbumId(id);
-            album.songs = songs;
+            this._validator.validatePutAuthenticationPayload(payload);
+            const { refreshToken } = payload;
+            await this._authenticationsService.verifyRefreshToken(refreshToken);
+            const { id } = this._tokenManager.verifyRefreshToken(refreshToken);
+            const accessToken = this._tokenManager.generateAccessToken({ id });
             return {
                 status: 'success',
+                message: 'Access Token berhasil diperbarui',
                 data: {
-                    album,
+                    accessToken,
                 },
             };
         } catch (error) {
@@ -64,10 +76,10 @@ class AlbumsHandler {
                 response.code(error.statusCode);
                 return response;
             }
-
+            // Server ERROR!
             const response = h.response({
                 status: 'error',
-                message: 'Maaf, terjadi kegagaln pada server Kami.',
+                message: 'Maaf, terjadi kegagalan pada server kami.',
             });
             response.code(500);
             console.log(error);
@@ -75,14 +87,15 @@ class AlbumsHandler {
         }
     }
 
-    async putAlbumByIdHandler(request, h) {
+    async deleteAuthenticationHandler({ payload }, h) {
         try {
-            this._validator.validateAlbumPayload(request.payload);
-            const { id } = request.params;
-            await this._service.editAlbumById(id, request.payload);
+            this._validator.validateDeleteAuthenticationPayload(payload);
+            const { refreshToken } = payload;
+            await this._authenticationsService.verifyRefreshToken(refreshToken);
+            await this._authenticationsService.deleteRefreshToken(refreshToken);
             return {
                 status: 'success',
-                message: 'Album berhasil diperbarui',
+                message: 'Access token berhasil dihapus',
             };
         } catch (error) {
             if (error instanceof ClientError) {
@@ -96,34 +109,6 @@ class AlbumsHandler {
 
             const response = h.response({
                 status: 'error',
-                message: 'Maaf, terjadi kegagal pada server Kami.',
-            });
-            response.code(500);
-            console.log(error);
-            return response;
-        }
-    }
-
-    async deleteAlbumByIdHandler(request, h) {
-        try {
-            const { id } = request.params;
-            await this._service.deleteAlbumById(id);
-            return {
-                status: 'success',
-                message: 'Album berhasil dihapus',
-            };
-        } catch (error) {
-            if (error instanceof ClientError) {
-                const response = h.response({
-                    status: 'fail',
-                    message: error.message,
-                });
-                response.code(error.statusCode);
-                return response;
-            }
-
-            const response = h.response({
-                status: 'fail',
                 message: 'Maaf, terjadi kegagalan pada server Kami.',
             });
             response.code(500);
@@ -133,4 +118,4 @@ class AlbumsHandler {
     }
 }
 
-module.exports = AlbumsHandler;
+module.exports = AuthenticationsHandler;
