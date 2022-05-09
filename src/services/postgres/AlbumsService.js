@@ -38,7 +38,17 @@ class AlbumsService {
             values: [name, year, id],
         });
         if (!result.rows.length) {
-            throw new NotFoundError('Gagal memperbarui albums. Id tidak ditemukan');
+            throw new NotFoundError('Gagal memperbarui Albums. Id tidak ditemukan');
+        }
+    }
+
+    async addCoverValueById(id, cover) {
+        const result = await this._pool.query({
+            text: 'UPDATE albums SET cover = $1 WHERE id = $2 RETURNING id',
+            values: [cover, id],
+        });
+        if (!result.rows.length) {
+            throw new NotFoundError('Gagal memperbarui Albums. Id tidak ditemukan');
         }
     }
 
