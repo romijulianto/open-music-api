@@ -41,7 +41,7 @@ const _exports = require('./api/exports');
 const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportsValidator = require('./validator/exports');
 
-const uploads = require('./api/uploads');
+const uploads = require('./api/upload');
 const StorageService = require('./services/storage/StorageService');
 const UploadsValidator = require('./validator/uploads');
 
@@ -59,7 +59,7 @@ const init = async() => {
     const playlistsService = new PlaylistsService(collaborationsService);
     const playlistSongsService = new PlaylistSongsService();
     const playlistSongActivitiesService = new PlaylistSongActivitiesService();
-    const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/images'));
+    const storageService = new StorageService(path.resolve(__dirname, 'api/upload/images'));
     const cacheService = new CacheService();
     const albumLikesService = new AlbumLikesService(cacheService);
 
