@@ -17,7 +17,7 @@ class AlbumLikesService {
         if (!result.rows[0].id) {
             throw new InvariantError('Gagal menyukai Album');
         }
-        await this._cacheService.delete('openmusic:album-likes');
+        await this._cacheService.delete(`openmusic:album-likes:${albumId}`);
         return 'Berhasil menyukai album';
     }
 
@@ -29,7 +29,7 @@ class AlbumLikesService {
         if (!result.rows[0].id) {
             throw new InvariantError('Gagal untuk batal menyukai Album');
         }
-        await this._cacheService.delete('openmusic:album-likes');
+        await this._cacheService.delete(`openmusic:album-likes:${albumId}`);
         return 'Berhasil batal menyukai Album';
     }
 
@@ -43,7 +43,7 @@ class AlbumLikesService {
 
     async getAlbumLikesByAlbumId(albumId) {
         try {
-            const result = await this._cacheService.get('openmusic:album-likes');
+            const result = await this._cacheService.get(`openmusic:album-likes:${albumId}`);
             return {
                 dataSource: 'cache',
                 likes: JSON.parse(result),
@@ -54,7 +54,10 @@ class AlbumLikesService {
                 values: [albumId],
             });
             const jumlah = parseInt(result.rows[0].jumlah, 10);
-            await this._cacheService.set('openmusic:album-likes', JSON.stringify(jumlah));
+            await this._cacheService.set(
+                `openmusic:album-likes:${albumId}`,
+                JSON.stringify(jumlah),
+            );
             return {
                 dataSource: 'database',
                 likes: jumlah,
