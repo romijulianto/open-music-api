@@ -1,3 +1,4 @@
+const autoBind = require('auto-bind');
 const ClientError = require('../../exceptions/clientError');
 
 class ExportsHandler {
@@ -6,6 +7,7 @@ class ExportsHandler {
     this._service = ProducerService;
     this._playlistsService = playlistsService;
     this._validator = validator;
+    autoBind(this);
 
     this.postExportPlaylistsSongHandler = this.postExportPlaylistsSongHandler.bind(this);
   }
